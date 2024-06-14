@@ -1,0 +1,10 @@
+{
+    "authorization_endpoint": "https://blitz.test2.local/blitz/oauth/ae",
+    "client_id": "AuthTestApp",
+    "redirect_uri": "https://localhost:5000/callback",
+    "client_secret": "0gX6XSdbW4Gt3Yj",
+    "token_endpoint": "https://blitz.test2.local/blitz/oauth/te",
+    "scope": "profile openid",
+    "logout_endpoint": "https://blitz.test2.local/blitz/oauth/logout",
+    "post_logout_redirect_uri": "https://localhost:5000/logout"
+}

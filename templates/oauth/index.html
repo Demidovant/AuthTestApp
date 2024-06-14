@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ app_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='oauth/index.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+<div class="container">
+    <form method="POST" class="form" id="main_form">
+        <div class="logo">
+
+        </div>
+        <div class="topper">
+            <!-- <img id="logo" src="logo.png" alt="AuthTestApp"> -->
+            <!-- <h1 id="appname">{{ app_name }}</h1> -->
+            <!-- <input type="text" id="filename" placeholder="Enter filename"> -->
+            <button class="button" id="manage_configs_button" type="button">Manage configs</button>
+            <!--    <button class="button" id="load_config_button" type="button">Load config</button> -->
+            <!-- <form method="post" enctype="multipart/form-data" action="{{ url_for('upload_config') }}">
+                <input type="file" name="config_file" id="config_file">
+                <button type="submit" id="load_config_button">Load Config</button>
+            </form>
+            -->
+            <button class="button" id="clean_button" type="button">Clean</button>
+        </div>
+        <div class="form-group">
+            <label for="authorization_endpoint">Authorization endpoint</label>
+            <input name="authorization_endpoint" id="authorization_endpoint" value="{{ authorization_endpoint }}"
+                   placeholder="https://identity.provider.ru/oauth/ae"></input><br>
+        </div>
+        <div class="form-group">
+            <label for="token_endpoint">Token endpoint</label>
+            <input name="token_endpoint" id="token_endpoint" value="{{ token_endpoint }}"
+                   placeholder="https://identity.provider.ru/oauth/te"></input><br>
+        </div>
+        <div class="form-group">
+            <label for="logout_endpoint">Logout endpoint</label>
+            <input name="logout_endpoint" id="logout_endpoint" data-href="{{ logout_endpoint }}"
+                   value="{{ logout_endpoint }}" placeholder="https://identity.provider.ru/oauth/logout"></input><br>
+        </div>
+        <div class="form-group">
+            <label for="client_id">Client ID</label>
+            <input name="client_id" id="client_id" value="{{ client_id }}" placeholder="AuthTestApp"></input><br>
+        </div>
+        <div class="form-group">
+            <label for="client_secret">Client Secret</label>
+            <input name="client_secret" id="client_secret" value="{{ client_secret }}"
+                   placeholder="1qaz@WSX"></input><br>
+        </div>
+        <div class="form-group">
+            <label for="redirect_uri">Redirect URI</label>
+            <input name="redirect_uri" id="redirect_uri" value="{{ redirect_uri }}"
+                   placeholder="https://AuthTestApp.ru/callback"></input><br>
+        </div>
+        <div class="form-group">
+            <label for="post_logout_redirect_uri">Post Logout Redirect URI</label>
+            <input name="post_logout_redirect_uri" id="post_logout_redirect_uri" value="{{ post_logout_redirect_uri }}"
+                   placeholder="https://AuthTestApp.ru/logout"></input><br>
+        </div>
+        <div class="form-group">
+            <label for="scope">Scope</label>
+            <input name="scope" id="scope" value="{{ scope }}" placeholder="profile openid"></input><br>
+        </div>
+        <div class="buttons-group">
+            <label class="user-name" id="user-name">{{ username }}</label>
+            <button class="button" id="logout_button" type="button">Logout</button>
+            <button class="button" id="login_button" type="submit">Login</button>
+        </div>
+    </form>
+    <div class="token-container">
+        <textarea id="token-content" readonly>{{ token_content }}</textarea>
+    </div>
+</div>
+<div class="log-container">
+    <textarea id="log-content" readonly>{{ log_content }}</textarea>
+</div>
+<img id="logo" src="logo.png" alt="AuthTestApp">
+<script src="{{ url_for('static', filename='oauth/index.js') }}"></script>
+</body>
+</html>

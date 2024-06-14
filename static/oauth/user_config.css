@@ -1,0 +1,74 @@
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    font-family: sans-serif;
+    background-color: #e6f7f2;
+}
+
+h1 {
+    text-align: center;
+    margin: 1rem 0;
+}
+
+table {
+    width: 60%;
+    border-collapse: collapse;
+    margin: 0 auto;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+
+th,
+td {
+    padding: 15px;
+    border: none;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+    color: #333;
+    font-weight: bold;
+}
+
+tr:hover {
+    background-color: #F0F0F0;
+}
+
+.button {
+    margin-top: 1%;
+    margin-bottom: 1%;
+    padding: 3% 5%;
+    background-color: #4CAF50; /* Зеленый цвет */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Плавный переход цвета */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Тень кнопки */
+}
+
+.button:hover {
+    background-color: #45a049; /* Более темный зеленый при наведении */
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3); /* Увеличение тени при наведении */
+}
+
+.button:active {
+    background-color: #3e8e41; /* Еще более темный зеленый при нажатии */
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4); /* Увеличение и затемнение тени */
+    transform: scale(0.95); /* Небольшое сжатие при нажатии */
+}
+
+.home-button-container {
+    display: flex;
+    justify-content: center;
+    top: 10px;
+
+}
+
+.home-button {
+    padding: 0.5% 1%;
+}
