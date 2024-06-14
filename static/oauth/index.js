@@ -20,7 +20,7 @@ document.getElementById('clean_button').onclick = function () {
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.host}`;
     }
     const baseUrl = window.location.origin;
-    const cleanEndpoint = '/clean';
+    const cleanEndpoint = '/oauth/clean';
     const cleanURL = baseUrl + cleanEndpoint;
     window.location.href = cleanURL;
 };
