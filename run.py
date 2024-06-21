@@ -3,108 +3,19 @@ import urllib.parse
 import requests
 from flask import render_template, request, redirect, url_for, send_from_directory, abort, make_response, send_file
 import json
-import logging
-from logging.handlers import RotatingFileHandler
 from flask import Flask
 from requests.models import PreparedRequest
 import os
-import jwt
 from werkzeug.utils import secure_filename
 import datetime
+from module.logger import logger, rotate_log, read_log
+from module.oauth.token_handler import save_token, save_decoded_token, read_decoded_token, clear_tokens, decode_token, \
+    get_username, TOKEN_DECODED_FILE, TOKEN_FILE
+
 
 app = Flask(__name__, static_folder="static", static_url_path="", template_folder="templates")
 
-LOG_FILE = "logs/oauth/log.txt"
-TOKEN_FILE = "logs/oauth/token.txt"
-TOKEN_DECODED_FILE = "logs/oauth/token_decoded.txt"
 CONFIG_FILE = "app_config/oauth/oauth_config.json"
-
-for file in [TOKEN_FILE, LOG_FILE, TOKEN_DECODED_FILE]:
-    path = os.path.dirname(file)
-    if not os.path.exists(path):
-        os.makedirs(path)
-    with open(file, "w") as f:
-        pass
-
-logger = logging.getLogger("AuthTestApp")
-logger.setLevel(logging.DEBUG)
-# formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-handler = RotatingFileHandler(LOG_FILE)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-stream_handler = logging.StreamHandler()
-stream_handler.setFormatter(formatter)
-logger.addHandler(stream_handler)
-
-
-def rotate_log(n):
-    lines = []
-    with open(LOG_FILE, "r") as f:
-        for line in reversed(f.readlines()):
-            lines.append(line)
-            if len(lines) >= n:
-                break
-    with open(LOG_FILE, "w") as f:
-        f.writelines(lines[::-1])
-
-
-def read_log():
-    with open(LOG_FILE, "r") as f:
-        log_content = f.read()
-    return log_content
-
-
-def decode_token(token):
-    decoded_data = jwt.decode(jwt=token,
-                              algorithms=["HS256"],
-                              verify=False,
-                              options={"verify_signature": False})
-    return decoded_data
-
-
-def save_token(token):
-    with open(TOKEN_FILE, "w", encoding="utf-8") as f:
-        f.write(token)
-    logger.info(f"Token saved to {TOKEN_FILE}")
-
-
-def save_decoded_token(decoded_data):
-    with open(TOKEN_DECODED_FILE, "w", encoding="utf-8") as f:
-        f.write(json.dumps(decoded_data, indent=4, ensure_ascii=False))
-    logger.info(f"Decoded token saved to {TOKEN_DECODED_FILE}")
-
-
-def read_decoded_token():
-    with open(TOKEN_DECODED_FILE, "r", encoding="utf-8") as f:
-        token_content = f.read()
-    return token_content
-
-
-def clear_tokens():
-    with open(TOKEN_DECODED_FILE, "w", encoding="utf-8") as f:
-        pass
-    with open(TOKEN_FILE, "w", encoding="utf-8") as f:
-        pass
-
-
-def get_username():
-    username = ""
-    attributes = ["sub", "uid", "mail", "email", "phone", "mobile"]
-    for attr in attributes:
-        if not username:
-            try:
-                with open(TOKEN_DECODED_FILE, "r", encoding="utf-8") as f:
-                    username = json.load(f)[attr]
-                    logger.info(f"Username: {username}")
-            except:
-                pass
-    else:
-        if not username:
-            logger.warning("Can't get any USERNAME from token or no token")
-            logger.warning(f"Tried to search {attributes} attributes")
-        return username
-
 
 logger.info("Start")
 
@@ -294,6 +205,7 @@ def upload_config():
             logger.warning("No file uploaded.")
     return redirect(url_for("oauth"))
 
+
 @app.route("/oauth/user_config")
 def user_config():
     files = os.listdir(app.config["USER_OAUTH_CONFIG_FOLDER"])
@@ -314,10 +226,12 @@ def user_config():
         file_stats = os.stat(file_path)
         current_config_file_data.append({
             "current_config_filename": filename,
-            "current_config_modified_date": datetime.datetime.fromtimestamp(file_stats.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
+            "current_config_modified_date": datetime.datetime.fromtimestamp(file_stats.st_mtime).strftime(
+                "%Y-%m-%d %H:%M:%S"),
             "current_config_size": f"{round(file_stats.st_size / 1024, 2)} kb"
         })
-    return render_template("/oauth/user_config.html", file_data=file_data, current_config_file_data=current_config_file_data)
+    return render_template("/oauth/user_config.html", file_data=file_data,
+                           current_config_file_data=current_config_file_data)
 
 
 if __name__ == "__main__":
@@ -327,8 +241,9 @@ if __name__ == "__main__":
 
     APP_CERT = "AuthTestApp.crt"
     APP_KEY = "AuthTestApp.key"
-    #IDP_CA_CERT = "./certs/eurosib_ca.crt"
+    # IDP_CA_CERT = "./certs/eurosib_ca.crt"
     APP_HOST = "localhost"
     APP_NAME = "AuthTestApp"
 
-    app.run(host=APP_HOST, debug=True, ssl_context=(app.config["APP_CERT_FOLDER"] + "/" + APP_CERT, app.config["APP_CERT_FOLDER"] + "/" + APP_KEY))
+    app.run(host=APP_HOST, debug=True,
+            ssl_context=(app.config["APP_CERT_FOLDER"] + "/" + APP_CERT, app.config["APP_CERT_FOLDER"] + "/" + APP_KEY))
