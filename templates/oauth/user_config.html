@@ -6,7 +6,7 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 <body>
-<h1>OAuth configs</h1>
+<h1>OAuth saved configs</h1>
 <table>
     <tr>
         <th>Filename</th>
@@ -20,11 +20,34 @@
         <td>{{ file['modified_date'] }}</td>
         <td>{{ file['size'] }}</td>
         <td>
-            <button class="button" data-filename="{{ file['filename'] }}">Download</button>
+            <button class="button" id="download_button" data-filename="{{ file['filename'] }}">Download</button>
         </td>
     </tr>
     {% endfor %}
 </table>
+
+<h1>OAuth current config</h1>
+
+<table>
+    <tr>
+        <th>Filename</th>
+        <th>Modified Date</th>
+        <th>Size</th>
+        <th></th>
+    </tr>
+    {% for file in current_config_file_data %}
+    <tr>
+        <td>{{ file['current_config_filename'] }}</td>
+        <td>{{ file['current_config_modified_date'] }}</td>
+        <td>{{ file['current_config_size'] }}</td>
+        <td>
+            <button class="button" id="download_button" data-filename="{{ file['current_config_filename'] }}">Download</button>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+
 <div class="home-button-container">
     <button class="button home-button" id="home_button" type="button">OAuth home page</button>
 </div>

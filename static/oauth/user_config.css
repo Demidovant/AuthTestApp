@@ -9,7 +9,7 @@ body {
 
 h1 {
     text-align: center;
-    margin: 1rem 0;
+    margin: 3% 0 1%;
 }
 
 table {
@@ -38,10 +38,14 @@ tr:hover {
     background-color: #F0F0F0;
 }
 
+tr:hover #download_button {
+    display: block;
+}
+
 .button {
-    margin-top: 1%;
-    margin-bottom: 1%;
-    padding: 3% 5%;
+    margin-top: 0.5%;
+    margin-bottom: 0.5%;
+    padding: 0% 3%;
     background-color: #4CAF50; /* Зеленый цвет */
     color: white;
     border: none;
@@ -66,9 +70,30 @@ tr:hover {
     display: flex;
     justify-content: center;
     top: 10px;
-
 }
 
 .home-button {
     padding: 0.5% 1%;
+}
+
+#download_button {
+    margin-top: 0.5%;
+    margin-bottom: 0.5%;
+    padding: 0% 3%;
+    background-color: #eeeeee; /* Зеленый цвет */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Тень кнопки */
+}
+
+#download_button:hover {
+    background-color: #45a049; /* Более темный зеленый при наведении */
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3); /* Увеличение тени при наведении */
+}
+
+#download_button:active {
+    background-color: #3e8e41; /* Еще более темный зеленый при нажатии */
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4); /* Увеличение и затемнение тени */
+    transform: scale(0.95); /* Небольшое сжатие при нажатии */
 }

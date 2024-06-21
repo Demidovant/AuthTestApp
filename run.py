@@ -17,7 +17,7 @@ app = Flask(__name__, static_folder="static", static_url_path="", template_folde
 LOG_FILE = "logs/oauth/log.txt"
 TOKEN_FILE = "logs/oauth/token.txt"
 TOKEN_DECODED_FILE = "logs/oauth/token_decoded.txt"
-CONFIG_FILE = "app_config/oauth_config.json"
+CONFIG_FILE = "app_config/oauth/oauth_config.json"
 
 for file in [TOKEN_FILE, LOG_FILE, TOKEN_DECODED_FILE]:
     path = os.path.dirname(file)
@@ -273,7 +273,7 @@ def clean():
 
 @app.route("/oauth/config/download/<filename>", methods=["GET", "POST"])
 def download_config(filename):
-    file_path = os.path.join(app.config["USER_CONFIG_FOLDER"], filename)
+    file_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], filename)
     if not os.path.exists(file_path):
         return abort(404)
     response = make_response(send_file(file_path, as_attachment=True))
@@ -296,22 +296,34 @@ def upload_config():
 
 @app.route("/oauth/user_config")
 def user_config():
-    files = os.listdir(app.config["USER_CONFIG_FOLDER"])
+    files = os.listdir(app.config["USER_OAUTH_CONFIG_FOLDER"])
     file_data = []
     for filename in files:
-        file_path = os.path.join(app.config["USER_CONFIG_FOLDER"], filename)
+        file_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], filename)
         file_stats = os.stat(file_path)
         file_data.append({
             "filename": filename,
             "modified_date": datetime.datetime.fromtimestamp(file_stats.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
             "size": f"{round(file_stats.st_size / 1024, 2)} kb"
         })
-    return render_template("/oauth/user_config.html", file_data=file_data)
+
+    current_config_files = os.listdir(app.config["APP_OAUTH_CONFIG_FOLDER"])
+    current_config_file_data = []
+    for filename in current_config_files:
+        file_path = os.path.join(app.config["APP_OAUTH_CONFIG_FOLDER"], filename)
+        file_stats = os.stat(file_path)
+        current_config_file_data.append({
+            "current_config_filename": filename,
+            "current_config_modified_date": datetime.datetime.fromtimestamp(file_stats.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
+            "current_config_size": f"{round(file_stats.st_size / 1024, 2)} kb"
+        })
+    return render_template("/oauth/user_config.html", file_data=file_data, current_config_file_data=current_config_file_data)
 
 
 if __name__ == "__main__":
     app.config["APP_CERT_FOLDER"] = "app_cert"
-    app.config["USER_CONFIG_FOLDER"] = "user_config/oauth"
+    app.config["USER_OAUTH_CONFIG_FOLDER"] = "user_config/oauth"
+    app.config["APP_OAUTH_CONFIG_FOLDER"] = "app_config/oauth"
 
     APP_CERT = "AuthTestApp.crt"
     APP_KEY = "AuthTestApp.key"
