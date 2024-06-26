@@ -27,3 +27,15 @@ const manageConfigsButton = document.getElementById('home_button');
 manageConfigsButton.addEventListener('click', () => {
   window.location.href = '/oauth';
 });
+
+
+/*
+document.getElementById('rename_config_button').onclick = function () {
+    const baseUrl = window.location.origin;
+    const saveConfigEndpoint = 'oauth/config/load/';
+    const filename = document.getElementById('filename').value;
+    const saveConfigURL = baseUrl + saveConfigEndpoint + filename + ".json";
+    console.log("saveConfigURL: ", saveConfigURL)
+    window.location.href = saveConfigURL;
+};
+*/

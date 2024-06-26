@@ -8,14 +8,14 @@ from requests.models import PreparedRequest
 import os
 from werkzeug.utils import secure_filename
 import datetime
+
+from app_config.app_config import OAUTH_CONFIG_FILE, APP_HOST, APP_CERT, APP_KEY, APP_NAME, APP_CERT_FOLDER, \
+    USER_OAUTH_CONFIG_FOLDER, APP_OAUTH_CONFIG_FOLDER
 from module.logger import logger, rotate_log, read_log
 from module.oauth.token_handler import save_token, save_decoded_token, read_decoded_token, clear_tokens, decode_token, \
     get_username, TOKEN_DECODED_FILE, TOKEN_FILE
 
-
 app = Flask(__name__, static_folder="static", static_url_path="", template_folder="templates")
-
-CONFIG_FILE = "app_config/oauth/oauth_config.json"
 
 logger.info("Start")
 
@@ -42,7 +42,7 @@ def oauth():
             "post_logout_redirect_uri": request.form["post_logout_redirect_uri"],
         }
 
-        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        with open(OAUTH_CONFIG_FILE, "w", encoding="utf-8") as f:
             f.write(json.dumps(config, indent=4, ensure_ascii=False))
 
         logger.info(config)
@@ -64,10 +64,10 @@ def oauth():
         return redirect(req.url)
 
     try:
-        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        with open(OAUTH_CONFIG_FILE, "r", encoding="utf-8") as f:
             config = json.loads(f.read())
     except Exception as e:
-        logger.error(f"Файл {CONFIG_FILE} не найден, пуст или неккоретное содержимое файла")
+        logger.error(f"Файл {OAUTH_CONFIG_FILE} не найден, пуст или неккоретное содержимое файла")
         logger.error(e)
         config = {}
 
@@ -117,7 +117,7 @@ def callback():
             logger.error(f"No CODE from identity provider")
             return redirect(url_for("oauth"))
 
-        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+        with open(OAUTH_CONFIG_FILE, "r", encoding="utf-8") as f:
             config = json.load(f)
 
         url = config["token_endpoint"]
@@ -186,6 +186,8 @@ def clean():
 def download_config(filename):
     file_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], filename)
     if not os.path.exists(file_path):
+        file_path = os.path.join(app.config["APP_OAUTH_CONFIG_FOLDER"], filename)
+    if not os.path.exists(file_path):
         return abort(404)
     response = make_response(send_file(file_path, as_attachment=True))
     response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
@@ -193,21 +195,21 @@ def download_config(filename):
 
 
 @app.route("/oauth/config/load", methods=["GET", "POST"])
-def upload_config():
+def oauth_upload_config():
     if request.method == "POST":
-        uploaded_file = request.files["config_file"]
+        uploaded_file = request.files["USER_OAUTH_CONFIG_FOLDER"]
         if uploaded_file.filename != "":
             filename = secure_filename(uploaded_file.filename)
-            file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], filename)
             uploaded_file.save(file_path)
             logger.info(f"File {filename} uploaded successfully!")
         else:
             logger.warning("No file uploaded.")
-    return redirect(url_for("oauth"))
+    return redirect(url_for("oauth_user_config"))
 
 
 @app.route("/oauth/user_config")
-def user_config():
+def oauth_user_config():
     files = os.listdir(app.config["USER_OAUTH_CONFIG_FOLDER"])
     file_data = []
     for filename in files:
@@ -219,31 +221,25 @@ def user_config():
             "size": f"{round(file_stats.st_size / 1024, 2)} kb"
         })
 
-    current_config_files = os.listdir(app.config["APP_OAUTH_CONFIG_FOLDER"])
-    current_config_file_data = []
-    for filename in current_config_files:
+    current_oauth_config_files = os.listdir(app.config["APP_OAUTH_CONFIG_FOLDER"])
+    current_oauth_config_file_data = []
+    for filename in current_oauth_config_files:
         file_path = os.path.join(app.config["APP_OAUTH_CONFIG_FOLDER"], filename)
         file_stats = os.stat(file_path)
-        current_config_file_data.append({
-            "current_config_filename": filename,
-            "current_config_modified_date": datetime.datetime.fromtimestamp(file_stats.st_mtime).strftime(
+        current_oauth_config_file_data.append({
+            "current_oauth_config_filename": filename,
+            "current_oauth_config_modified_date": datetime.datetime.fromtimestamp(file_stats.st_mtime).strftime(
                 "%Y-%m-%d %H:%M:%S"),
-            "current_config_size": f"{round(file_stats.st_size / 1024, 2)} kb"
+            "current_oauth_config_size": f"{round(file_stats.st_size / 1024, 2)} kb"
         })
     return render_template("/oauth/user_config.html", file_data=file_data,
-                           current_config_file_data=current_config_file_data)
+                           current_oauth_config_file_data=current_oauth_config_file_data)
 
 
 if __name__ == "__main__":
-    app.config["APP_CERT_FOLDER"] = "app_cert"
-    app.config["USER_OAUTH_CONFIG_FOLDER"] = "user_config/oauth"
-    app.config["APP_OAUTH_CONFIG_FOLDER"] = "app_config/oauth"
-
-    APP_CERT = "AuthTestApp.crt"
-    APP_KEY = "AuthTestApp.key"
-    # IDP_CA_CERT = "./certs/eurosib_ca.crt"
-    APP_HOST = "localhost"
-    APP_NAME = "AuthTestApp"
+    app.config["APP_CERT_FOLDER"] = APP_CERT_FOLDER
+    app.config["USER_OAUTH_CONFIG_FOLDER"] = USER_OAUTH_CONFIG_FOLDER
+    app.config["APP_OAUTH_CONFIG_FOLDER"] = APP_OAUTH_CONFIG_FOLDER
 
     app.run(host=APP_HOST, debug=True,
             ssl_context=(app.config["APP_CERT_FOLDER"] + "/" + APP_CERT, app.config["APP_CERT_FOLDER"] + "/" + APP_KEY))

@@ -20,44 +20,38 @@ table {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-
-th,
 td {
-    padding: 15px;
-    border: none;
+    padding: 20px;
     text-align: left;
 }
 
 th {
+    padding: 20px;
+    text-align: left;
     background-color: #f2f2f2;
     color: #333;
-    font-weight: bold;
 }
 
 tr:hover {
     background-color: #F0F0F0;
 }
 
-tr:hover #download_button {
-    display: block;
-}
-
 .button {
     margin-top: 0.5%;
     margin-bottom: 0.5%;
     padding: 0% 3%;
-    background-color: #4CAF50; /* Зеленый цвет */
+    background-color: #eeeeee;
     color: white;
     border: none;
     border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease; /* Плавный переход цвета */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Тень кнопки */
 }
 
 .button:hover {
     background-color: #45a049; /* Более темный зеленый при наведении */
     box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3); /* Увеличение тени при наведении */
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Плавный переход цвета */
 }
 
 .button:active {
@@ -72,28 +66,17 @@ tr:hover #download_button {
     top: 10px;
 }
 
-.home-button {
-    padding: 0.5% 1%;
-}
 
-#download_button {
+.home-button {
     margin-top: 0.5%;
     margin-bottom: 0.5%;
     padding: 0% 3%;
-    background-color: #eeeeee; /* Зеленый цвет */
+    background-color: #4CAF50; /* Зеленый цвет */
     color: white;
     border: none;
     border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Плавный переход цвета */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Тень кнопки */
-}
-
-#download_button:hover {
-    background-color: #45a049; /* Более темный зеленый при наведении */
-    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3); /* Увеличение тени при наведении */
-}
-
-#download_button:active {
-    background-color: #3e8e41; /* Еще более темный зеленый при нажатии */
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4); /* Увеличение и затемнение тени */
-    transform: scale(0.95); /* Небольшое сжатие при нажатии */
-}
+    padding: 0.5% 1%;
+    }

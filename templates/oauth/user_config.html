@@ -20,7 +20,7 @@
         <td>{{ file['modified_date'] }}</td>
         <td>{{ file['size'] }}</td>
         <td>
-            <button class="button" id="download_button" data-filename="{{ file['filename'] }}">Download</button>
+            <button class="button download_button" id="download_button" data-filename="{{ file['filename'] }}">Download</button>
         </td>
     </tr>
     {% endfor %}
@@ -35,13 +35,13 @@
         <th>Size</th>
         <th></th>
     </tr>
-    {% for file in current_config_file_data %}
+    {% for file in current_oauth_config_file_data %}
     <tr>
-        <td>{{ file['current_config_filename'] }}</td>
-        <td>{{ file['current_config_modified_date'] }}</td>
-        <td>{{ file['current_config_size'] }}</td>
+        <td>{{ file['current_oauth_config_filename'] }}</td>
+        <td>{{ file['current_oauth_config_modified_date'] }}</td>
+        <td>{{ file['current_oauth_config_size'] }}</td>
         <td>
-            <button class="button" id="download_button" data-filename="{{ file['current_config_filename'] }}">Download</button>
+            <button class="button download_button" id="current_config_download_button" data-filename="{{ file['current_oauth_config_filename'] }}">Download</button>
         </td>
     </tr>
     {% endfor %}

@@ -1,8 +1,7 @@
 import logging
 from logging.handlers import RotatingFileHandler
 import os
-
-LOG_FILE = "logs/log.txt"
+from app_config.app_config import LOG_FILE
 
 for file in [LOG_FILE]:
     path = os.path.dirname(file)

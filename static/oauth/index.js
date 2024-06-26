@@ -25,17 +25,6 @@ document.getElementById('clean_button').onclick = function () {
     window.location.href = cleanURL;
 };
 
-/*
-document.getElementById('save_config_button').onclick = function () {
-    const baseUrl = window.location.origin;
-    const saveConfigEndpoint = 'oauth/config/download/';
-    const filename = document.getElementById('filename').value;
-    const saveConfigURL = baseUrl + saveConfigEndpoint + filename + ".json";
-    console.log("saveConfigURL: ", saveConfigURL)
-    window.location.href = saveConfigURL;
-};
-*/
-
 const manageConfigsButton = document.getElementById('manage_configs_button');
 manageConfigsButton.addEventListener('click', () => {
   window.location.href = 'oauth/user_config';
