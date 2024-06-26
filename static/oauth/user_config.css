@@ -13,7 +13,7 @@ h1 {
 }
 
 table {
-    width: 60%;
+    width: 70%;
     border-collapse: collapse;
     margin: 0 auto;
     background-color: white;
@@ -21,6 +21,7 @@ table {
 }
 
 td {
+    flex-wrap: nowrap;
     padding: 20px;
     text-align: left;
 }
@@ -80,3 +81,11 @@ tr:hover {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Тень кнопки */
     padding: 0.5% 1%;
     }
+
+
+.new_filename {
+    margin-left: 30px;
+    width: 40%;
+    box-sizing: border-box;
+}
+

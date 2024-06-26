@@ -1,7 +1,8 @@
 import time
 import urllib.parse
 import requests
-from flask import render_template, request, redirect, url_for, send_from_directory, abort, make_response, send_file
+from flask import render_template, request, redirect, url_for, send_from_directory, abort, make_response, send_file, \
+    jsonify
 import json
 from flask import Flask
 from requests.models import PreparedRequest
@@ -205,6 +206,34 @@ def oauth_upload_config():
             logger.info(f"File {filename} uploaded successfully!")
         else:
             logger.warning("No file uploaded.")
+    return redirect(url_for("oauth_user_config"))
+
+
+@app.route("/oauth/config/rename", methods=["POST"])
+def oauth_rename_config():
+    if request.method == "POST":
+        data = request.get_json()  # Get the JSON data from the request
+        original_filename = data.get("original_filename")
+        new_filename = data.get("new_filename")
+        if not new_filename.endswith(".json"):
+            new_filename = new_filename + ".json"
+
+        logger.info("originalFilename:", original_filename)
+        logger.info("newFilename:", new_filename)
+
+        if original_filename and new_filename:
+            try:
+                old_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], original_filename)
+                new_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], new_filename)
+                os.rename(old_path, new_path)
+                logger.info(f"File {original_filename} renamed to {new_filename} successfully!")
+                return jsonify({"success": True})
+            except Exception as e:
+                logger.error(f"Error renaming file: {e}")
+                return jsonify({"success": False}), 500
+        else:
+            logger.warning("Missing original or new filename in rename request.")
+            return jsonify({"success": False}), 400
     return redirect(url_for("oauth_user_config"))
 
 
