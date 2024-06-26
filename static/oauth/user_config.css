@@ -87,5 +87,12 @@ tr:hover {
     margin-left: 30px;
     width: 40%;
     box-sizing: border-box;
+
+    &:focus {
+        color: #333;
+        &::placeholder {
+            color: transparent;
+        }
+    }
 }
 
