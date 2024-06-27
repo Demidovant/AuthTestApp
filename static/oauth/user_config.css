@@ -40,8 +40,9 @@ tr:hover {
 .button {
     margin-top: 0.5%;
     margin-bottom: 0.5%;
-    padding: 0% 3%;
-    background-color: #eeeeee;
+    margin-right: 2rem;
+    padding: 0.3rem 0.5rem;
+    background-color: #c7c7c7;
     color: white;
     border: none;
     border-radius: 5px;
@@ -82,17 +83,29 @@ tr:hover {
     padding: 0.5% 1%;
     }
 
-
 .new_filename {
-    margin-left: 30px;
     width: 40%;
     box-sizing: border-box;
-
-    &:focus {
-        color: #333;
-        &::placeholder {
-            color: transparent;
-        }
-    }
 }
 
+.new_filename:hover::placeholder {
+    color: #090909;
+}
+
+.new_filename:focus::placeholder {
+    color: transparent;
+}
+
+
+.delete_button:hover {
+    background-color: #ff4d4d; /* Более темный красный при наведении */
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3); /* Увеличение тени при наведении */
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Плавный переход цвета */
+}
+
+.delete_button:active {
+    background-color: #b32929; /* Еще более темный красный при нажатии */
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4); /* Увеличение и затемнение тени */
+    transform: scale(0.95); /* Небольшое сжатие при нажатии */
+}

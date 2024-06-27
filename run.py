@@ -1,6 +1,6 @@
 from flask import redirect, url_for
 from flask import Flask
-from oauth_endpoints import register_oauth_endpoints
+from module.oauth.oauth_endpoints import register_oauth_endpoints
 from app_config.app_config import APP_HOST, APP_CERT, APP_KEY, APP_CERT_FOLDER, USER_OAUTH_CONFIG_FOLDER, \
     APP_OAUTH_CONFIG_FOLDER
 from module.logger import logger

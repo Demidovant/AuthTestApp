@@ -34,6 +34,7 @@ body {
     height: 97vh;
     width: calc(35vw - 2rem);
     flex-direction: column;
+
 }
 
 .form {
@@ -141,38 +142,6 @@ body {
     align-items: center;
 }
 
-#filename {
-    margin-top: 1%;
-    margin-bottom: 1%;
-    padding: 0.75% 1.5%;
-    border: none;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    flex-grow: 1;
-    min-width: 30px;
-}
-
-#save_config_button {
-    margin-top: 1%;
-    margin-bottom: 1%;
-    padding: 0.75% 1.5%;
-    border: none;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-#load_config_button {
-    margin-top: 1%;
-    margin-bottom: 1%;
-    padding: 0.75% 1.5%;
-    border: none;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
 #logout_button {
     display: none;
 }
@@ -204,7 +173,6 @@ body {
     margin-bottom: 3px;
 }
 
-
 .buttons-group .user-name:not(:empty) + #logout_button {
     display: block;
 }
@@ -235,7 +203,6 @@ body {
     border-radius: 10px;
     resize: none;
     scroll-behavior: auto;
-    scroll-position: top;
 }
 
 .log-container {

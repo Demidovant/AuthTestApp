@@ -3,6 +3,8 @@ import json
 import os
 import time
 import urllib
+from urllib.parse import unquote
+
 import requests
 from flask import request, redirect, render_template, url_for, abort, make_response, send_file, jsonify
 from requests import PreparedRequest
@@ -167,18 +169,19 @@ def register_oauth_endpoints(app):
             logger.info(f"Files {TOKEN_FILE} and {TOKEN_DECODED_FILE} are cleared")
             return redirect(url_for("oauth"))
 
-    @app.route("/oauth/config/download/<filename>", methods=["GET", "POST"])
+    @app.route("/oauth/config/download/<filename>", methods=["GET"])
     def oauth_download_config(filename):
-        file_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], filename)
-        if not os.path.exists(file_path):
-            file_path = os.path.join(app.config["APP_OAUTH_CONFIG_FOLDER"], filename)
-        if not os.path.exists(file_path):
-            logger.error(f"File {file_path} not found")
-            return abort(404)
-        response = make_response(send_file(file_path, as_attachment=True))
-        response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
-        logger.info(f"File {file_path} was downloaded")
-        return response
+        try:
+            decoded_filename = unquote(filename)  # Декодирование имени файла
+            file_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], decoded_filename)
+            if os.path.exists(file_path):
+                return send_file(file_path, as_attachment=True)
+            else:
+                logger.warning(f"File {decoded_filename} not found.")
+                return jsonify({"success": False, "error": "File not found."}), 404
+        except Exception as e:
+            logger.error(f"Error downloading file: {e}")
+            return jsonify({"success": False, "error": str(e)}), 500
 
     @app.route("/oauth/config/load", methods=["GET", "POST"])
     def oauth_upload_config():
@@ -218,6 +221,29 @@ def register_oauth_endpoints(app):
             else:
                 logger.warning("Missing original or new filename in rename request.")
                 return jsonify({"success": False}), 400
+        return redirect(url_for("oauth_user_config"))
+
+    @app.route("/oauth/config/delete", methods=["POST"])
+    def oauth_delete_config():
+        if request.method == "POST":
+            data = request.get_json()
+            filename = data.get("filename")
+            if filename:
+                try:
+                    file_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], filename)
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                        logger.info(f"File {filename} deleted successfully!")
+                        return jsonify({"success": True})
+                    else:
+                        logger.warning(f"File {filename} not found.")
+                        return jsonify({"success": False, "error": "File not found"}), 404
+                except Exception as e:
+                    logger.error(f"Error deleting file: {e}")
+                    return jsonify({"success": False}), 500
+            else:
+                logger.warning("Missing filename in delete request.")
+                return jsonify({"success": False, "error": "Missing filename"}), 400
         return redirect(url_for("oauth_user_config"))
 
     @app.route("/oauth/user_config")

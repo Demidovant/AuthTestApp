@@ -3,9 +3,15 @@ const downloadButtons = document.querySelectorAll('.download_button[data-filenam
 downloadButtons.forEach(button => {
   button.addEventListener('click', () => {
     const filename = button.dataset.filename;
-    const downloadUrl = `/oauth/config/download/${filename}`;
+    const encodedFilename = encodeURIComponent(filename); // Кодирование имени файла
+    const downloadUrl = `/oauth/config/download/${encodedFilename}`;
     fetch(downloadUrl)
-      .then(response => response.blob())
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.blob();
+      })
       .then(blob => {
         const downloadLink = document.createElement('a');
         downloadLink.href = URL.createObjectURL(blob);
@@ -28,20 +34,6 @@ manageConfigsButton.addEventListener('click', () => {
   window.location.href = '/oauth';
 });
 
-
-/*
-const renameButtons = document.querySelectorAll('.rename_button[data-filename]');
-renameButtons.forEach(button => {
-  button.addEventListener('click', () => {
-    const baseUrl = window.location.origin;
-    const saveConfigEndpoint = 'oauth/config/load/';
-    const filename = document.getElementById('new_filename').value;
-    const saveConfigURL = baseUrl + saveConfigEndpoint + filename + ".json";
-    console.log("saveConfigURL: ", saveConfigURL)
-    window.location.href = saveConfigURL;
-      });
-    });
-*/
 
 const renameButtons = document.querySelectorAll('.rename_button[data-original-filename]');
 
@@ -75,11 +67,54 @@ renameButtons.forEach(button => {
         window.location.href = "/oauth/user_config";
       } else {
         alert("Error renaming file. Please try again.");
+        window.location.href = "/oauth/user_config";
       }
     })
     .catch(error => {
       console.error("Error sending rename request:", error);
       alert("An error occurred. Please try again.");
+      window.location.href = "/oauth/user_config";
+    });
+  });
+});
+
+
+const deleteButtons = document.querySelectorAll('.delete_button[data-filename]');
+
+deleteButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    const filename = button.dataset.filename;
+
+    const confirmDelete = confirm(`Are you sure you want to delete the file: ${filename}?`);
+    if (!confirmDelete) {
+      return;
+    }
+
+    console.log("filename: ", filename);
+
+    fetch("/oauth/config/delete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        filename: filename
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert("File deleted successfully!");
+        window.location.href = "/oauth/user_config";
+      } else {
+        alert("Error deleting file: " + (data.error || "Please try again."));
+        window.location.href = "/oauth/user_config";
+      }
+    })
+    .catch(error => {
+      console.error("Error sending delete request:", error);
+      alert("An error occurred. Please try again.");
+      window.location.href = "/oauth/user_config";
     });
   });
 });
