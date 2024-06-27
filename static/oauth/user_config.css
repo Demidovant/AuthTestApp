@@ -96,6 +96,18 @@ tr:hover {
     color: transparent;
 }
 
+.current_config_save_input {
+    width: 40%;
+    box-sizing: border-box;
+}
+
+.current_config_save_input:hover::placeholder {
+    color: #090909;
+}
+
+.current_config_save_input:focus::placeholder {
+    color: transparent;
+}
 
 .delete_button:hover {
     background-color: #ff4d4d; /* Более темный красный при наведении */

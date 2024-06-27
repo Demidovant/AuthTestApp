@@ -45,6 +45,8 @@
         <td>{{ file['current_oauth_config_size'] }}</td>
         <td>
             <button class="button download_button" id="current_config_download_button" data-filename="{{ file['current_oauth_config_filename'] }}">Download</button>
+            <input type="text" class="current_config_save_input" placeholder="Enter filename">
+            <button class="button save_button" id="current_config_save_button" data-filename="{{ file['current_oauth_config_filename'] }}">Save config</button>
         </td>
     </tr>
     {% endfor %}

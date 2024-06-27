@@ -64,16 +64,16 @@ renameButtons.forEach(button => {
     .then(data => {
       if (data.success) {
         alert("File renamed successfully!");
-        window.location.href = "/oauth/user_config";
+        window.location.reload();
       } else {
         alert("Error renaming file. Please try again.");
-        window.location.href = "/oauth/user_config";
+        window.location.reload();
       }
     })
     .catch(error => {
       console.error("Error sending rename request:", error);
       alert("An error occurred. Please try again.");
-      window.location.href = "/oauth/user_config";
+      window.location.reload();
     });
   });
 });
@@ -105,16 +105,51 @@ deleteButtons.forEach(button => {
     .then(data => {
       if (data.success) {
         alert("File deleted successfully!");
-        window.location.href = "/oauth/user_config";
+        window.location.reload();
       } else {
         alert("Error deleting file: " + (data.error || "Please try again."));
-        window.location.href = "/oauth/user_config";
+        window.location.reload();
       }
     })
     .catch(error => {
       console.error("Error sending delete request:", error);
       alert("An error occurred. Please try again.");
-      window.location.href = "/oauth/user_config";
+      window.location.reload();
     });
+  });
+});
+
+
+document.getElementById('current_config_save_button').addEventListener('click', () => {
+  const newFilenameInput = document.querySelector('.current_config_save_input');
+  const newFilename = newFilenameInput.value;
+
+  if (!newFilename) {
+    alert("Please enter a filename");
+    return;
+  }
+
+  fetch("/oauth/config/save", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      filename: newFilename
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert("Configuration saved successfully!");
+      window.location.reload();
+    } else {
+      alert("Error saving configuration. Please try again.");
+    }
+  })
+  .catch(error => {
+    console.error("Error saving configuration:", error);
+    alert("An error occurred. Please try again.");
+    window.location.reload();
   });
 });
