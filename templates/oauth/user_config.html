@@ -20,10 +20,11 @@
         <td>{{ file['modified_date'] }}</td>
         <td>{{ file['size'] }}</td>
         <td>
-            <button class="button download_button" id="download_button" data-filename="{{ file['filename'] }}">Download</button>
             <input type="text" class="new_filename" placeholder="Enter new filename">
             <button class="button rename_button" data-original-filename="{{ file['filename'] }}">Rename</button>
+            <button class="button download_button" id="download_button" data-filename="{{ file['filename'] }}">Download</button>
             <button class="button delete_button" data-filename="{{ file['filename'] }}">Delete</button>
+            <button class="button use_button" data-filename="{{ file['filename'] }}">Use this config</button>
         </td>
     </tr>
     {% endfor %}

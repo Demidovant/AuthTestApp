@@ -267,6 +267,26 @@ def register_oauth_endpoints(app):
                 logger.error(f"Error saving configuration: {e}")
                 return jsonify({"success": False, "error": str(e)}), 500
 
+    @app.route("/oauth/config/use", methods=["POST"])
+    def oauth_use_config():
+        if request.method == "POST":
+            data = request.get_json()
+            filename = data.get("filename")
+            if not filename.endswith(".json"):
+                filename = filename + ".json"
+            try:
+                source_file_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], filename)
+                destination_file_path = OAUTH_CONFIG_FILE
+                with open(source_file_path, "r", encoding='utf-8') as config_file:
+                    config_content = config_file.read()
+                    with open(destination_file_path, 'w', encoding='utf-8') as config_file_for_save:
+                        config_file_for_save.write(config_content)
+                logger.info(f"Configuration saved to {filename} successfully!")
+                return jsonify({"success": True})
+            except Exception as e:
+                logger.error(f"Error saving configuration: {e}")
+                return jsonify({"success": False, "error": str(e)}), 500
+
     @app.route("/oauth/user_config")
     def oauth_user_config():
         files = os.listdir(app.config["USER_OAUTH_CONFIG_FOLDER"])

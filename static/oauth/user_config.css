@@ -13,7 +13,7 @@ h1 {
 }
 
 table {
-    width: 70%;
+    width: 80%;
     border-collapse: collapse;
     margin: 0 auto;
     background-color: white;
@@ -118,6 +118,19 @@ tr:hover {
 
 .delete_button:active {
     background-color: #b32929; /* Еще более темный красный при нажатии */
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4); /* Увеличение и затемнение тени */
+    transform: scale(0.95); /* Небольшое сжатие при нажатии */
+}
+
+.use_button:hover {
+    background-color: #ffa600; /* Более темный оранжевый при наведении */
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3); /* Увеличение тени при наведении */
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Плавный переход цвета */
+}
+
+.use_button:active {
+    background-color: #efa917; /* Еще более темный оранжевый при нажатии */
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4); /* Увеличение и затемнение тени */
     transform: scale(0.95); /* Небольшое сжатие при нажатии */
 }

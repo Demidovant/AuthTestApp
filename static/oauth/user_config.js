@@ -153,3 +153,43 @@ document.getElementById('current_config_save_button').addEventListener('click', 
     window.location.reload();
   });
 });
+
+
+const useButtons = document.querySelectorAll('.use_button[data-filename]');
+useButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    const filename = button.dataset.filename;
+
+    const confirmUse = confirm(`Are you sure you want to use the config file: ${filename}?`);
+    if (!confirmUse) {
+      return;
+    }
+
+    console.log("filename: ", filename);
+
+    fetch("/oauth/config/use", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        filename: filename
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert("Configuration used successfully!");
+        window.location.reload();
+      } else {
+        alert("Error using configuration: " + (data.error || "Please try again."));
+        window.location.reload();
+      }
+    })
+    .catch(error => {
+      console.error("Error sending use request:", error);
+      alert("An error occurred. Please try again.");
+      window.location.reload();
+    });
+  });
+});
