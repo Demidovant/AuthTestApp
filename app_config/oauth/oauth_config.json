@@ -1,10 +1,10 @@
 {
-    "authorization_endpoint": "https://login.eurosib.local/realms/eurosib/protocol/openid-connect/auth",
+    "authorization_endpoint": "https://blitz.test2.local/blitz/oauth/ae",
     "client_id": "AuthTestApp",
-    "redirect_uri": "https://localhost:5000/oauth/callback",
-    "client_secret": "g3TMEeqAUeUBd9rjs1QrRwnvNmHirbB9",
-    "token_endpoint": "https://login.eurosib.local/realms/eurosib/protocol/openid-connect/token",
-    "scope": "profile openid",
-    "logout_endpoint": "https://login.eurosib.local/realms/eurosib/protocol/openid-connect/logout",
-    "post_logout_redirect_uri": "https://localhost:5000/oauth/logout"
+    "redirect_uri": "https://localhost:5000/callback",
+    "client_secret": "0gX6XSdbW4Gt3Yj",
+    "token_endpoint": "https://blitz.test2.local/blitz/oauth/te",
+    "scope": "profile",
+    "logout_endpoint": "https://blitz.test2.local/blitz/oauth/logout",
+    "post_logout_redirect_uri": "https://localhost:5000/logout"
 }

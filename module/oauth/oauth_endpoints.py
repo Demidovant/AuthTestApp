@@ -6,10 +6,10 @@ import urllib
 from urllib.parse import unquote
 
 import requests
-from flask import request, redirect, render_template, url_for, abort, make_response, send_file, jsonify
+from flask import request, redirect, render_template, url_for, send_file, jsonify
 from requests import PreparedRequest
 from werkzeug.utils import secure_filename
-from app_config.app_config import OAUTH_CONFIG_FILE, APP_NAME
+from app_config.app_config import OAUTH_CONFIG_FILE, APP_NAME, USER_OAUTH_CONFIG_FOLDER
 from module.logger import rotate_log, logger, read_log
 from module.oauth.token_handler import clear_tokens, TOKEN_FILE, TOKEN_DECODED_FILE, get_username, read_decoded_token, \
     decode_token, save_token, save_decoded_token
@@ -247,8 +247,8 @@ def register_oauth_endpoints(app):
                 return jsonify({"success": False, "error": "Missing filename"}), 400
         return redirect(url_for("oauth_user_config"))
 
-    @app.route("/oauth/config/save", methods=["POST"])
-    def oauth_save_config():
+    @app.route("/oauth/config/save_user_config", methods=["POST"])
+    def oauth_save_user_config():
         if request.method == "POST":
             data = request.get_json()
             filename = data.get("filename")
@@ -262,6 +262,20 @@ def register_oauth_endpoints(app):
                     with open(destination_file_path, 'w', encoding='utf-8') as config_file_for_save:
                         config_file_for_save.write(config_content)
                 logger.info(f"Configuration saved to {filename} successfully!")
+                return jsonify({"success": True})
+            except Exception as e:
+                logger.error(f"Error saving configuration: {e}")
+                return jsonify({"success": False, "error": str(e)}), 500
+
+    @app.route("/oauth/config/save_current_config", methods=["POST"])
+    def oauth_save_current_config():
+        if request.method == "POST":
+            data = request.get_json()
+            try:
+                destination_file_path = OAUTH_CONFIG_FILE
+                with open(destination_file_path, 'w', encoding='utf-8') as config_file_for_save:
+                    config_file_for_save.write(json.dumps(data, ensure_ascii=False, indent=4))
+                logger.info("Current configuration file saved successfully!")
                 return jsonify({"success": True})
             except Exception as e:
                 logger.error(f"Error saving configuration: {e}")
@@ -286,6 +300,18 @@ def register_oauth_endpoints(app):
             except Exception as e:
                 logger.error(f"Error saving configuration: {e}")
                 return jsonify({"success": False, "error": str(e)}), 500
+
+    @app.route("/oauth/config/view/<filename>", methods=["GET"])
+    def oauth_view_config(filename):
+        try:
+            if not filename.endswith(".json"):
+                filename = filename + ".json"
+            file_path = os.path.join(USER_OAUTH_CONFIG_FOLDER, filename)
+            with open(file_path, "r", encoding="utf-8") as config_file:
+                config_content = config_file.read()
+            return config_content, 200
+        except Exception as e:
+            return str(e), 500
 
     @app.route("/oauth/user_config")
     def oauth_user_config():

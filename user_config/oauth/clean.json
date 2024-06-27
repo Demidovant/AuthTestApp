@@ -1,0 +1,10 @@
+{
+    "authorization_endpoint": "",
+    "client_id": "",
+    "redirect_uri": "",
+    "client_secret": "",
+    "token_endpoint": "",
+    "scope": "",
+    "logout_endpoint": "",
+    "post_logout_redirect_uri": ""
+}
