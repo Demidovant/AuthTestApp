@@ -30,6 +30,11 @@ manageConfigsButton.addEventListener('click', () => {
   window.location.href = 'oauth/user_config';
 });
 
+const manageCertsButton = document.getElementById('manage_certs_button');
+manageCertsButton.addEventListener('click', () => {
+  window.location.href = 'oauth/user_cert';
+});
+
 
 document.getElementById('save_current_config_button').addEventListener('click', () => {
   const authorizationEndpoint = document.getElementById('authorization_endpoint').value;

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OAuth certs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='oauth/user_cert.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+<h1>OAuth saved certs</h1>
+<table>
+    <tr>
+        <th>Filename</th>
+        <th>Modified Date</th>
+        <th>Size</th>
+        <th></th>
+    </tr>
+    {% for file in file_data %}
+    <tr>
+        <td>{{ file['filename'] }}</td>
+        <td>{{ file['modified_date'] }}</td>
+        <td>{{ file['size'] }}</td>
+        <td>
+            <input type="text" class="new_filename" placeholder="Enter new filename">
+            <button class="button rename_button" data-original-filename="{{ file['filename'] }}">Rename</button>
+            <button class="button download_button" id="download_button" data-filename="{{ file['filename'] }}">Download</button>
+            <button class="button delete_button" data-filename="{{ file['filename'] }}">Delete</button>
+            <button class="button use_button" data-filename="{{ file['filename'] }}">Use this cert</button>
+            <button class="button view_button" data-filename="{{ file['filename'] }}">View cert</button>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<div id="modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <pre id="cert-content"></pre>
+    </div>
+</div>
+
+<h1>OAuth current cert</h1>
+
+<table>
+    <tr>
+        <th>Filename</th>
+        <th>Modified Date</th>
+        <th>Size</th>
+        <th></th>
+    </tr>
+    {% for file in current_oauth_cert_file_data %}
+    <tr>
+        <td>{{ file['current_oauth_cert_filename'] }}</td>
+        <td>{{ file['current_oauth_cert_modified_date'] }}</td>
+        <td>{{ file['current_oauth_cert_size'] }}</td>
+        <td>
+            <button class="button download_button" id="current_cert_download_button" data-filename="{{ file['current_oauth_cert_filename'] }}">Download</button>
+            <input type="text" class="current_cert_save_input" placeholder="Enter filename">
+            <button class="button save_button" id="current_cert_save_button" data-filename="{{ file['current_oauth_cert_filename'] }}">Save cert</button>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+
+<div class="home-button-container">
+    <button class="button home-button" id="home_button" type="button">GO BACK</button>
+</div>
+<script src="{{ url_for('static', filename='oauth/user_cert.js') }}"></script>
+</body>
+</html>
+
+

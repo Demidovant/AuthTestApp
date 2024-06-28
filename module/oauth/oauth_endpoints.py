@@ -1,18 +1,21 @@
 import datetime
 import json
 import os
+import shutil
 import time
 import urllib
 from urllib.parse import unquote
-
 import requests
 from flask import request, redirect, render_template, url_for, send_file, jsonify
 from requests import PreparedRequest
 from werkzeug.utils import secure_filename
-from app_config.app_config import OAUTH_CONFIG_FILE, APP_NAME, USER_OAUTH_CONFIG_FOLDER
+from app_config.app_config import OAUTH_CONFIG_FILE, APP_NAME, USER_OAUTH_CONFIG_FOLDER, USER_OAUTH_CERT_FOLDER, \
+    ALLOWED_CERT_EXTENSIONS, APP_OAUTH_CERT_FOLDER, APP_OAUTH_CONFIG_FOLDER
 from module.logger import rotate_log, logger, read_log
 from module.oauth.token_handler import clear_tokens, TOKEN_FILE, TOKEN_DECODED_FILE, get_username, read_decoded_token, \
     decode_token, save_token, save_decoded_token
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
 
 
 def register_oauth_endpoints(app):
@@ -173,28 +176,20 @@ def register_oauth_endpoints(app):
     def oauth_download_config(filename):
         try:
             decoded_filename = unquote(filename)
-            file_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], decoded_filename)
+            file_path = os.path.join(USER_OAUTH_CONFIG_FOLDER, decoded_filename)
+            current_file_path = os.path.join(APP_OAUTH_CONFIG_FOLDER, decoded_filename)
             if os.path.exists(file_path):
                 logger.info(f"File {filename} was downloaded")
                 return send_file(file_path, as_attachment=True)
+            elif os.path.exists(current_file_path):
+                logger.info(f"File {filename} was downloaded")
+                return send_file(current_file_path, as_attachment=True)
             else:
                 logger.warning(f"File {decoded_filename} not found.")
                 return jsonify({"success": False, "error": "File not found."}), 404
         except Exception as e:
             logger.error(f"Error downloading file: {e}")
             return jsonify({"success": False, "error": str(e)}), 500
-
-    @app.route("/oauth/config/load", methods=["GET", "POST"])
-    def oauth_upload_config():
-        if request.method == "POST":
-            uploaded_file = request.files["USER_OAUTH_CONFIG_FOLDER"]
-            if uploaded_file.filename != "":
-                filename = secure_filename(uploaded_file.filename)
-                file_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], filename)
-                uploaded_file.save(file_path)
-                logger.info(f"File {filename} uploaded successfully!")
-            else:
-                logger.warning("No file uploaded.")
         return redirect(url_for("oauth_user_config"))
 
     @app.route("/oauth/config/rename", methods=["POST"])
@@ -211,8 +206,8 @@ def register_oauth_endpoints(app):
 
             if original_filename and new_filename:
                 try:
-                    old_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], original_filename)
-                    new_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], new_filename)
+                    old_path = os.path.join(USER_OAUTH_CONFIG_FOLDER, original_filename)
+                    new_path = os.path.join(USER_OAUTH_CONFIG_FOLDER, new_filename)
                     os.rename(old_path, new_path)
                     logger.info(f"File {original_filename} renamed to {new_filename} successfully!")
                     return jsonify({"success": True})
@@ -231,7 +226,7 @@ def register_oauth_endpoints(app):
             filename = data.get("filename")
             if filename:
                 try:
-                    file_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], filename)
+                    file_path = os.path.join(USER_OAUTH_CONFIG_FOLDER, filename)
                     if os.path.exists(file_path):
                         os.remove(file_path)
                         logger.info(f"File {filename} deleted successfully!")
@@ -256,7 +251,7 @@ def register_oauth_endpoints(app):
                 filename = filename + ".json"
             try:
                 source_file_path = OAUTH_CONFIG_FILE
-                destination_file_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], filename)
+                destination_file_path = os.path.join(USER_OAUTH_CONFIG_FOLDER, filename)
                 with open(source_file_path, "r", encoding='utf-8') as config_file:
                     config_content = config_file.read()
                     with open(destination_file_path, 'w', encoding='utf-8') as config_file_for_save:
@@ -266,6 +261,7 @@ def register_oauth_endpoints(app):
             except Exception as e:
                 logger.error(f"Error saving configuration: {e}")
                 return jsonify({"success": False, "error": str(e)}), 500
+        return redirect(url_for("oauth_user_config"))
 
     @app.route("/oauth/config/save_current_config", methods=["POST"])
     def oauth_save_current_config():
@@ -280,16 +276,15 @@ def register_oauth_endpoints(app):
             except Exception as e:
                 logger.error(f"Error saving configuration: {e}")
                 return jsonify({"success": False, "error": str(e)}), 500
+        return redirect(url_for("oauth_user_config"))
 
     @app.route("/oauth/config/use", methods=["POST"])
     def oauth_use_config():
         if request.method == "POST":
             data = request.get_json()
             filename = data.get("filename")
-            if not filename.endswith(".json"):
-                filename = filename + ".json"
             try:
-                source_file_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], filename)
+                source_file_path = os.path.join(USER_OAUTH_CONFIG_FOLDER, filename)
                 destination_file_path = OAUTH_CONFIG_FILE
                 with open(source_file_path, "r", encoding='utf-8') as config_file:
                     config_content = config_file.read()
@@ -300,6 +295,7 @@ def register_oauth_endpoints(app):
             except Exception as e:
                 logger.error(f"Error saving configuration: {e}")
                 return jsonify({"success": False, "error": str(e)}), 500
+        return redirect(url_for("oauth_user_config"))
 
     @app.route("/oauth/config/view/<filename>", methods=["GET"])
     def oauth_view_config(filename):
@@ -311,14 +307,16 @@ def register_oauth_endpoints(app):
                 config_content = config_file.read()
             return config_content, 200
         except Exception as e:
+            logger.error(e)
             return str(e), 500
+        return redirect(url_for("oauth_user_config"))
 
     @app.route("/oauth/user_config")
     def oauth_user_config():
-        files = os.listdir(app.config["USER_OAUTH_CONFIG_FOLDER"])
+        files = os.listdir(USER_OAUTH_CONFIG_FOLDER)
         file_data = []
         for filename in files:
-            file_path = os.path.join(app.config["USER_OAUTH_CONFIG_FOLDER"], filename)
+            file_path = os.path.join(USER_OAUTH_CONFIG_FOLDER, filename)
             file_stats = os.stat(file_path)
             file_data.append({
                 "filename": filename,
@@ -326,10 +324,10 @@ def register_oauth_endpoints(app):
                 "size": f"{round(file_stats.st_size / 1024, 2)} kb"
             })
 
-        current_oauth_config_files = os.listdir(app.config["APP_OAUTH_CONFIG_FOLDER"])
+        current_oauth_config_files = os.listdir(APP_OAUTH_CONFIG_FOLDER)
         current_oauth_config_file_data = []
         for filename in current_oauth_config_files:
-            file_path = os.path.join(app.config["APP_OAUTH_CONFIG_FOLDER"], filename)
+            file_path = os.path.join(APP_OAUTH_CONFIG_FOLDER, filename)
             file_stats = os.stat(file_path)
             current_oauth_config_file_data.append({
                 "current_oauth_config_filename": filename,
@@ -339,3 +337,197 @@ def register_oauth_endpoints(app):
             })
         return render_template("/oauth/user_config.html", file_data=file_data,
                                current_oauth_config_file_data=current_oauth_config_file_data)
+
+    @app.route("/oauth/user_cert")
+    def oauth_user_cert():
+        files = os.listdir(USER_OAUTH_CERT_FOLDER)
+        file_data = []
+        for filename in files:
+            file_path = os.path.join(USER_OAUTH_CERT_FOLDER, filename)
+            file_stats = os.stat(file_path)
+            file_data.append({
+                "filename": filename,
+                "modified_date": datetime.datetime.fromtimestamp(file_stats.st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
+                "size": f"{round(file_stats.st_size / 1024, 2)} kb"
+            })
+
+        current_oauth_cert_files = os.listdir(APP_OAUTH_CERT_FOLDER)
+        current_oauth_cert_file_data = []
+        for filename in current_oauth_cert_files:
+            file_path = os.path.join(APP_OAUTH_CERT_FOLDER, filename)
+            file_stats = os.stat(file_path)
+            current_oauth_cert_file_data.append({
+                "current_oauth_cert_filename": filename,
+                "current_oauth_cert_modified_date": datetime.datetime.fromtimestamp(file_stats.st_mtime).strftime(
+                    "%Y-%m-%d %H:%M:%S"),
+                "current_oauth_cert_size": f"{round(file_stats.st_size / 1024, 2)} kb"
+            })
+        return render_template("/oauth/user_cert.html", file_data=file_data,
+                               current_oauth_cert_file_data=current_oauth_cert_file_data)
+
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_CERT_EXTENSIONS
+
+    @app.route("/oauth/cert/upload", methods=["POST"])
+    def oauth_cert_upload():
+        if request.method == "POST":
+            if 'file' not in request.files:
+                return redirect(url_for("oauth_user_cert"))
+            uploaded_file = request.files['file']
+            if uploaded_file.filename == '':
+                return redirect(url_for("oauth_user_cert"))
+            if uploaded_file and allowed_file(uploaded_file.filename):
+                filename = secure_filename(uploaded_file.filename)
+                file_path = os.path.join(USER_OAUTH_CERT_FOLDER, filename)
+                uploaded_file.save(file_path)
+                app.logger.info(f"File {filename} uploaded successfully!")
+                return redirect(url_for("oauth_user_cert"))
+        return redirect(url_for("oauth_user_cert"))
+
+    @app.route("/oauth/cert/download/<filename>", methods=["GET"])
+    def oauth_cert_download(filename):
+        try:
+            decoded_filename = unquote(filename)
+            file_path = os.path.join(USER_OAUTH_CERT_FOLDER, decoded_filename)
+            current_file_path = os.path.join(APP_OAUTH_CERT_FOLDER, decoded_filename)
+            if os.path.exists(file_path):
+                logger.info(f"File {filename} was downloaded")
+                return send_file(file_path, as_attachment=True)
+            elif os.path.exists(current_file_path):
+                logger.info(f"File {filename} was downloaded")
+                return send_file(current_file_path, as_attachment=True)
+            else:
+                logger.warning(f"File {decoded_filename} not found.")
+                return jsonify({"success": False, "error": "File not found."}), 404
+        except Exception as e:
+            logger.error(f"Error downloading file: {e}")
+            return jsonify({"success": False, "error": str(e)}), 500
+
+        return redirect(url_for("oauth_user_cert"))
+
+    @app.route("/oauth/cert/save_user_cert", methods=["POST"])
+    def oauth_save_user_cert():
+        if request.method == "POST":
+            data = request.get_json()
+            current_filename = data.get("current_filename")
+            filename = data.get("filename")
+            print(filename)
+            if not filename.endswith(ALLOWED_CERT_EXTENSIONS):
+                filename = filename + "." + current_filename.split(".")[-1]
+            try:
+                current_cert_files = [os.path.join(APP_OAUTH_CERT_FOLDER, f) for f in os.listdir(APP_OAUTH_CERT_FOLDER)
+                                      if
+                                      os.path.isfile(os.path.join(APP_OAUTH_CERT_FOLDER, f))]
+                source_file_path = max(current_cert_files, key=os.path.getmtime)
+                destination_file_path = os.path.join(USER_OAUTH_CERT_FOLDER, filename)
+                shutil.copy2(source_file_path, destination_file_path)
+                logger.info(f"Configuration saved to {filename} successfully!")
+                return jsonify({"success": True})
+            except Exception as e:
+                logger.error(f"Error saving configuration: {e}")
+                return jsonify({"success": False, "error": str(e)}), 500
+        return redirect(url_for("oauth_user_cert"))
+
+    @app.route("/oauth/cert/rename", methods=["POST"])
+    def oauth_cert_rename():
+        if request.method == "POST":
+            data = request.get_json()  # Get the JSON data from the request
+            original_filename = data.get("original_filename")
+            new_filename = data.get("new_filename")
+            if not new_filename.endswith(ALLOWED_CERT_EXTENSIONS):
+                new_filename = new_filename + "." + original_filename.split(".")[-1]
+
+            logger.info("originalFilename:", original_filename)
+            logger.info("newFilename:", new_filename)
+
+            if original_filename and new_filename:
+                try:
+                    old_path = os.path.join(USER_OAUTH_CERT_FOLDER, original_filename)
+                    new_path = os.path.join(USER_OAUTH_CERT_FOLDER, new_filename)
+                    os.rename(old_path, new_path)
+                    logger.info(f"File {original_filename} renamed to {new_filename} successfully!")
+                    return jsonify({"success": True})
+                except Exception as e:
+                    logger.error(f"Error renaming file: {e}")
+                    return jsonify({"success": False}), 500
+            else:
+                logger.warning("Missing original or new filename in rename request.")
+                return jsonify({"success": False}), 400
+        return redirect(url_for("oauth_user_cert"))
+
+    @app.route("/oauth/cert/delete", methods=["POST"])
+    def oauth_cert_delete():
+        if request.method == "POST":
+            data = request.get_json()
+            filename = data.get("filename")
+            if filename:
+                try:
+                    file_path = os.path.join(USER_OAUTH_CERT_FOLDER, filename)
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                        logger.info(f"File {filename} deleted successfully!")
+                        return jsonify({"success": True})
+                    else:
+                        logger.warning(f"File {filename} not found.")
+                        return jsonify({"success": False, "error": "File not found"}), 404
+                except Exception as e:
+                    logger.error(f"Error deleting file: {e}")
+                    return jsonify({"success": False}), 500
+            else:
+                logger.warning("Missing filename in delete request.")
+                return jsonify({"success": False, "error": "Missing filename"}), 400
+        return redirect(url_for("oauth_user_cert"))
+
+    @app.route("/oauth/cert/use", methods=["POST"])
+    def oauth_cert_use():
+        if request.method == "POST":
+            data = request.get_json()
+            filename = data.get("filename")
+            try:
+                source_file_path = os.path.join(USER_OAUTH_CERT_FOLDER, filename)
+                destination_file_path = APP_OAUTH_CERT_FOLDER
+                for filename in os.listdir(APP_OAUTH_CERT_FOLDER):
+                    file_path = os.path.join(APP_OAUTH_CERT_FOLDER, filename)
+                    try:
+                        if os.path.isfile(file_path):
+                            os.unlink(file_path)
+                    except Exception as e:
+                        print(f"Error deleting file {file_path}: {e}")
+                try:
+                    shutil.copy2(source_file_path, APP_OAUTH_CERT_FOLDER)
+                    print(f"File copied successfully from {source_file_path} to {APP_OAUTH_CERT_FOLDER}")
+                except Exception as e:
+                    print(f"Error copying file from {source_file_path} to {APP_OAUTH_CERT_FOLDER}: {e}")
+                logger.info(f"Configuration saved to {filename} successfully!")
+                return jsonify({"success": True})
+            except Exception as e:
+                logger.error(f"Error saving configuration: {e}")
+                return jsonify({"success": False, "error": str(e)}), 500
+        return redirect(url_for("oauth_user_cert"))
+
+    @app.route("/oauth/cert/view/<filename>", methods=["GET"])
+    def oauth_cert_view(filename):
+        try:
+            file_path = os.path.join(USER_OAUTH_CERT_FOLDER, filename)
+            if not os.path.exists(file_path):
+                file_path = os.path.join(APP_OAUTH_CERT_FOLDER, filename)
+            with open(file_path, "r", encoding="utf-8") as cert_file:
+                cert_str = cert_file.read()
+            try:
+                cert = x509.load_pem_x509_certificate(cert_str.encode(), default_backend())
+                cert_info = f"""
+"Issuer": {cert.issuer},
+"Subject": {cert.subject},
+"Serial Number": {cert.serial_number},
+"Not Valid Before": {cert.not_valid_before_utc},
+"Not Valid After": {cert.not_valid_after_utc}
+"""
+            except Exception as e:
+                logger.error(e)
+                cert_info = ""
+            result = cert_str + cert_info
+            return result, 200
+        except Exception as e:
+            logger.error(e)
+            return str(e), 500
+        return redirect(url_for("oauth_user_cert"))

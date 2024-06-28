@@ -4,7 +4,7 @@ downloadButtons.forEach(button => {
     button.addEventListener('click', () => {
         const filename = button.dataset.filename;
         const encodedFilename = encodeURIComponent(filename); // Кодирование имени файла
-        const downloadUrl = `/oauth/config/download/${encodedFilename}`;
+        const downloadUrl = `/oauth/cert/download/${encodedFilename}`;
         fetch(downloadUrl)
             .then(response => {
                 if (!response.ok) {
@@ -30,9 +30,8 @@ downloadButtons.forEach(button => {
 
 
 
-
-const manageConfigsButton = document.getElementById('home_button');
-manageConfigsButton.addEventListener('click', () => {
+const manageCertsButton = document.getElementById('home_button');
+manageCertsButton.addEventListener('click', () => {
     window.location.href = '/oauth';
 });
 
@@ -52,7 +51,7 @@ renameButtons.forEach(button => {
         console.log("originalFilename: ", originalFilename);
         console.log("newFilename: ", newFilename);
 
-        fetch("/oauth/config/rename", {
+        fetch("/oauth/cert/rename", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -94,7 +93,7 @@ deleteButtons.forEach(button => {
 
         console.log("filename: ", filename);
 
-        fetch("/oauth/config/delete", {
+        fetch("/oauth/cert/delete", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -122,39 +121,6 @@ deleteButtons.forEach(button => {
 });
 
 
-document.getElementById('current_config_save_button').addEventListener('click', () => {
-    const newFilenameInput = document.querySelector('.current_config_save_input');
-    const newFilename = newFilenameInput.value;
-
-    if (!newFilename) {
-        alert("Please enter a filename");
-        return;
-    }
-
-    fetch("/oauth/config/save_user_config", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            filename: newFilename
-        })
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                //alert("Configuration saved successfully!");
-                window.location.reload();
-            } else {
-                alert("Error saving configuration. Please try again.");
-            }
-        })
-        .catch(error => {
-            console.error("Error saving configuration:", error);
-            alert("An error occurred. Please try again.");
-            window.location.reload();
-        });
-});
 
 
 const useButtons = document.querySelectorAll('.use_button[data-filename]');
@@ -162,14 +128,14 @@ useButtons.forEach(button => {
     button.addEventListener('click', () => {
         const filename = button.dataset.filename;
 
-        const confirmUse = confirm(`Are you sure you want to use the config file: ${filename}?`);
+        const confirmUse = confirm(`Are you sure you want to use the cert file: ${filename}?`);
         if (!confirmUse) {
             return;
         }
 
         console.log("filename: ", filename);
 
-        fetch("/oauth/config/use", {
+        fetch("/oauth/cert/use", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -181,10 +147,10 @@ useButtons.forEach(button => {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert("Configuration used successfully!");
+                    alert("Cert used successfully!");
                     window.location.reload();
                 } else {
-                    alert("Error using configuration: " + (data.error || "Please try again."));
+                    alert("Error using cert: " + (data.error || "Please try again."));
                     window.location.reload();
                 }
             })
@@ -201,21 +167,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewButtons = document.querySelectorAll('.view_button[data-filename]');
     const modal = document.getElementById('modal');
     const closeModal = document.querySelector('.close');
-    const configContent = document.getElementById('config-content');
+    const certContent = document.getElementById('cert-content');
 
     viewButtons.forEach(button => {
         button.addEventListener('click', () => {
             const filename = button.dataset.filename;
 
-            fetch(`/oauth/config/view/${filename}`)
+            fetch(`/oauth/cert/view/${filename}`)
                 .then(response => response.text())
                 .then(data => {
 //                    console.log(data)
-                    configContent.textContent = data;
+                    certContent.textContent = data;
                     modal.style.display = 'block';
                 })
                 .catch(error => {
-                    console.error('Error fetching config:', error);
+                    console.error('Error fetching cert:', error);
                 });
         });
     });
@@ -235,4 +201,43 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.style.display = 'none';
         }
     });
+});
+
+
+document.getElementById('current_cert_save_button').addEventListener('click', () => {
+    const newFilenameInput = document.querySelector('.current_cert_save_input');
+    const newFilename = newFilenameInput.value;
+
+    if (!newFilename) {
+        alert("Please enter a filename");
+        return;
+    }
+
+    const currentCertSaveButton = document.getElementById('current_cert_save_button');
+    const currentFilename = currentCertSaveButton.dataset.filename;
+
+    fetch("/oauth/cert/save_user_cert", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            current_filename: currentFilename,
+            filename: newFilename
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                //alert("cert saved successfully!");
+                window.location.reload();
+            } else {
+                alert("Error saving cert. Please try again.");
+            }
+        })
+        .catch(error => {
+            console.error("Error saving cert:", error);
+            alert("An error occurred. Please try again.");
+            window.location.reload();
+        });
 });
