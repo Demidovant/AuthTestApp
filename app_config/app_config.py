@@ -1,7 +1,6 @@
 LOG_FILE = "logs/log.txt"
 APP_CERT = "AuthTestApp.crt"
 APP_KEY = "AuthTestApp.key"
-# IDP_CA_CERT = "./certs/eurosib_ca_123.crt"
 APP_HOST = "localhost"
 APP_NAME = "AuthTestApp"
 APP_CERT_FOLDER = "app_cert"

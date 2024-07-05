@@ -31,6 +31,14 @@
     {% endfor %}
 </table>
 
+<div class="upload_section">
+    <div class="allowed_ext">Allowed file extensions: {{ accept }}<br /></div>
+    <form id="uploadForm" action="/oauth/cert/upload" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" id="fileInput" accept={{ accept }}>
+        <button class="button upload_button" type="submit">Upload Certificate</button>
+    </form>
+</div>
+
 <div id="modal" class="modal" style="display: none;">
     <div class="modal-content">
         <span class="close">&times;</span>

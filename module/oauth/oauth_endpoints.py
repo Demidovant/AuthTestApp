@@ -34,6 +34,7 @@ def register_oauth_endpoints(app):
                 "scope": request.form["scope"],
                 "logout_endpoint": request.form["logout_endpoint"],
                 "post_logout_redirect_uri": request.form["post_logout_redirect_uri"],
+                "use_idp_ca": request.form.get("use_idp_ca", False)
             }
 
             with open(OAUTH_CONFIG_FILE, "w", encoding="utf-8") as f:
@@ -75,9 +76,16 @@ def register_oauth_endpoints(app):
                 "scope": "",
                 "logout_endpoint": "",
                 "post_logout_redirect_uri": "",
+                "use_idp_ca": False
             }
 
         username = get_username()
+
+        try:
+            idp_ca_cert = os.listdir(APP_OAUTH_CERT_FOLDER)[0]
+        except Exception as e:
+            logger.warn('The idp certificate is missing')
+            logger.warn(e)
 
         return render_template(
             "oauth/index.html",
@@ -93,6 +101,8 @@ def register_oauth_endpoints(app):
             log_content=read_log(),
             token_content=read_decoded_token(),
             username=username,
+            use_idp_ca=config["use_idp_ca"],
+            idp_ca_cert=idp_ca_cert
         )
 
     @app.route("/oauth/callback", methods=["GET", "POST"])
@@ -131,9 +141,17 @@ def register_oauth_endpoints(app):
             logger.info(f"POST to: {full_url}")
 
             # time.sleep(27)
+
+            if config["use_idp_ca"]:
+                idp_ca_cert = os.listdir(APP_OAUTH_CERT_FOLDER)[0]
+            else:
+                idp_ca_cert = False
+
             try:
-                # response = requests.post(full_url, headers=headers, data=params, verify=IDP_CA_CERT)
-                response = requests.post(url, headers=headers, data=params, verify=False)
+                if idp_ca_cert:
+                    response = requests.post(url, headers=headers, data=params, verify=USER_OAUTH_CERT_FOLDER + "/" + idp_ca_cert)
+                else:
+                    response = requests.post(url, headers=headers, data=params, verify=False)
                 try:
                     encoded_token = response.json()["access_token"]
                     decoded_token = decode_token(encoded_token)
@@ -362,8 +380,10 @@ def register_oauth_endpoints(app):
                     "%Y-%m-%d %H:%M:%S"),
                 "current_oauth_cert_size": f"{round(file_stats.st_size / 1024, 2)} kb"
             })
+
+        accept = ",".join(ALLOWED_CERT_EXTENSIONS)
         return render_template("/oauth/user_cert.html", file_data=file_data,
-                               current_oauth_cert_file_data=current_oauth_cert_file_data)
+                               current_oauth_cert_file_data=current_oauth_cert_file_data, accept=accept)
 
     def allowed_file(filename):
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_CERT_EXTENSIONS
@@ -372,16 +392,20 @@ def register_oauth_endpoints(app):
     def oauth_cert_upload():
         if request.method == "POST":
             if 'file' not in request.files:
+                logger.warning('No file part in the request')
                 return redirect(url_for("oauth_user_cert"))
             uploaded_file = request.files['file']
             if uploaded_file.filename == '':
+                logger.warning('No selected file')
                 return redirect(url_for("oauth_user_cert"))
             if uploaded_file and allowed_file(uploaded_file.filename):
                 filename = secure_filename(uploaded_file.filename)
                 file_path = os.path.join(USER_OAUTH_CERT_FOLDER, filename)
                 uploaded_file.save(file_path)
-                app.logger.info(f"File {filename} uploaded successfully!")
+                logger.info(f"File {filename} uploaded successfully!")
                 return redirect(url_for("oauth_user_cert"))
+            else:
+                logger.warning("Can't load file. File extension not allowed")
         return redirect(url_for("oauth_user_cert"))
 
     @app.route("/oauth/cert/download/<filename>", methods=["GET"])
@@ -485,12 +509,11 @@ def register_oauth_endpoints(app):
             filename = data.get("filename")
             try:
                 source_file_path = os.path.join(USER_OAUTH_CERT_FOLDER, filename)
-                destination_file_path = APP_OAUTH_CERT_FOLDER
                 for filename in os.listdir(APP_OAUTH_CERT_FOLDER):
                     file_path = os.path.join(APP_OAUTH_CERT_FOLDER, filename)
                     try:
                         if os.path.isfile(file_path):
-                            os.unlink(file_path)
+                            os.remove(file_path)
                     except Exception as e:
                         print(f"Error deleting file {file_path}: {e}")
                 try:

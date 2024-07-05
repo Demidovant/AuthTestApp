@@ -147,7 +147,7 @@ useButtons.forEach(button => {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert("Cert used successfully!");
+                    //alert("Cert used successfully!");
                     window.location.reload();
                 } else {
                     alert("Error using cert: " + (data.error || "Please try again."));

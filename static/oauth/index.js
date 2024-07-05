@@ -45,6 +45,7 @@ document.getElementById('save_current_config_button').addEventListener('click', 
   const redirectUri = document.getElementById('redirect_uri').value;
   const postLogoutRedirectUri = document.getElementById('post_logout_redirect_uri').value;
   const scope = document.getElementById('scope').value;
+  const useIdpCa = document.getElementById('use_idp_ca').value;
 
   const configData = {
     authorization_endpoint: authorizationEndpoint,
@@ -54,7 +55,8 @@ document.getElementById('save_current_config_button').addEventListener('click', 
     client_secret: clientSecret,
     redirect_uri: redirectUri,
     post_logout_redirect_uri: postLogoutRedirectUri,
-    scope: scope
+    scope: scope,
+    use_idp_ca: useIdpCa
   };
 
   fetch("/oauth/config/save_current_config", {
@@ -80,3 +82,47 @@ document.getElementById('save_current_config_button').addEventListener('click', 
     window.location.reload();
   });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const useIdpCaCheckbox = document.getElementById('use_idp_ca');
+    const sslCertInfo = document.getElementById('ssl_cert_info');
+    const currentCertName = document.getElementById('current_cert_name');
+
+    useIdpCaCheckbox.addEventListener('change', () => {
+        if (useIdpCaCheckbox.checked) {
+            // Здесь должен быть код для отображения текущего сертификата
+            sslCertInfo.style.display = 'block';
+        } else {
+            sslCertInfo.style.display = 'none';
+        }
+    });
+});
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    let useIdpCaInput = document.getElementById('use_idp_ca');
+    let currentCertName = document.getElementById('current_cert_name');
+    if (useIdpCaInput.value === 'True') {
+        manageCertsButton.style.opacity = 100;
+        currentCertName.style.opacity = 100;
+        useIdpCaInput.checked = true;
+    }
+});
+
+
+function toggleManageCerts() {
+    let useIdpCaCheckbox = document.getElementById("use_idp_ca");
+    let manageCertsButton = document.getElementById("manage_certs_button");
+    let currentCertName = document.getElementById('current_cert_name');
+
+    if (useIdpCaCheckbox.checked) {
+        manageCertsButton.style.opacity = 100;
+        currentCertName.style.opacity = 100;
+        useIdpCaCheckbox.value = 'True';
+    } else {
+        manageCertsButton.style.opacity = 0;
+        currentCertName.style.opacity = 0;
+        useIdpCaCheckbox.value = 'False';
+    }
+}
+

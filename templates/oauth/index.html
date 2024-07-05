@@ -17,7 +17,6 @@
             <!-- <h1 id="appname">{{ app_name }}</h1> -->
             <button class="button" id="save_current_config_button" type="button">Save current config</button>
             <button class="button" id="manage_configs_button" type="button">Manage configs</button>
-            <button class="button" id="manage_certs_button" type="button">Manage certs</button>
             <button class="button" id="clean_button" type="button">Clear log</button>
         </div>
         <div class="form-group">
@@ -57,6 +56,18 @@
         <div class="form-group">
             <label for="scope">Scope</label>
             <input name="scope" id="scope" value="{{ scope }}" placeholder="profile openid"></input><br>
+        </div>
+        <div class="form-group">
+            <label for="use_idp_ca">Use IDP CA Cert</label>
+            <div class="switch-container">
+                <label class="switch">
+                    <input type="checkbox" id="use_idp_ca" name="use_idp_ca" onclick="toggleManageCerts()"
+                           value={{ use_idp_ca }}>
+                    <span class="slider round"></span>
+                </label>
+                <button class="button" id="manage_certs_button" type="button">Manage certs</button>
+            </div>
+            <p><label id="current_cert_name">{{ idp_ca_cert }}</label></p>
         </div>
         <div class="buttons-group">
             <label class="user-name" id="user-name">{{ username }}</label>
